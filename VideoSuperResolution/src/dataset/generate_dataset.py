@@ -2,9 +2,9 @@ import os
 import shutil
 import cv2
 
-from extract_frames import FrameExtractor
-from degrade import DatasetDegrader
-from merge_video import merge_frames
+from VideoSuperResolution.src.utils.extract_frames import FrameExtractor
+from VideoSuperResolution.src.dataset.degrade import DatasetDegrader
+from VideoSuperResolution.src.utils.merge_video import merge_frames
 
 
 # ===========================
