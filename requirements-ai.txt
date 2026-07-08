@@ -1,0 +1,9 @@
+# ============================================================
+# AI Super Resolution
+# Install after installing requirements.txt
+# ============================================================
+
+torch==2.1.2
+torchvision==0.16.2
+basicsr==1.4.2
+realesrgan==0.3.0

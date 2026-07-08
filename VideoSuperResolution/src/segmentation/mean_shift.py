@@ -56,32 +56,33 @@ class MeanShiftSegmenter:
 
     def segmentation_map(self, segmented):
         """
-        Sinh Label Map từ ảnh đã Mean Shift.
-
-        Parameters
-        ----------
-        segmented : np.ndarray
-
-        Returns
-        -------
-        labels : np.ndarray
-            Ma trận nhãn của các vùng.
+        Sinh Label Map chuẩn: Kết hợp giá trị màu và tính liên thông không gian.
         """
-
-        # Gom các màu giống nhau thành cùng một nhãn
+        # Bước 1: Vẫn gom các màu độc nhất toàn cục để có danh sách màu (giống cũ của bạn)
         pixels = segmented.reshape(-1, 3)
-
-        _, labels = np.unique(
-            pixels,
-            axis=0,
-            return_inverse=True
-        )
-
-        labels = labels.reshape(
-            segmented.shape[:2]
-        )
-
-        return labels
+        unique_colors, inverse_labels = np.unique(pixels, axis=0, return_inverse=True)
+        
+        # Mảng chứa nhãn cuối cùng (khởi tạo bằng 0)
+        final_labels = np.zeros(segmented.shape[:2], dtype=np.int32)
+        current_max_label = 0
+        
+        # Tạo mask cho ảnh nhãn tạm thời
+        temp_labels = inverse_labels.reshape(segmented.shape[:2])
+        
+        # Bước 2: Duyệt qua từng màu độc nhất, tách các vùng bị cô lập bằng Connected Components
+        for color_idx in range(len(unique_colors)):
+            # Tạo mặt nạ nhị phân cho màu hiện tại
+            color_mask = (temp_labels == color_idx).astype(np.uint8)
+            
+            # Tìm các thành phần liên thông độc lập của màu này
+            num_labels, cc_labels = cv2.connectedComponents(color_mask, connectivity=8)
+            
+            # Nhãn 0 của cc_labels là vùng nền (không thuộc màu này), ta chỉ lấy từ nhãn 1 trở đi
+            for i in range(1, num_labels):
+                current_max_label += 1
+                final_labels[cc_labels == i] = current_max_label
+                
+        return final_labels
 
     def colorize(self, labels):
         """

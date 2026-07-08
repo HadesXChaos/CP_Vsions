@@ -4,3 +4,4 @@ __pycache__/
 # Dataset
 data/ground_truth/
 data/low_resolution/
+*.mpg

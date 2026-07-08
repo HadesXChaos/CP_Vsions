@@ -1,0 +1,10 @@
+{
+    "source_path": "d:\\PYTHON\\cv\\CP_Vsions\\VideoSuperResolution\\data\\videos\\input\\flight2tape1_1.mpg",
+    "fps": 29.97002997002997,
+    "width": 720,
+    "height": 480,
+    "total_frames": 8992,
+    "extracted_frames": 30,
+    "frame_step": 5,
+    "output_dir": "d:\\PYTHON\\cv\\CP_Vsions\\VideoSuperResolution\\data\\frames\\flight2tape1_1"
+}
