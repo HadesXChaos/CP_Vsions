@@ -1,0 +1,29 @@
+# ===========================
+# Video Super Resolution - Requirements
+# Python 3.11+
+# ===========================
+
+# --- Core (đang dùng: Extract Frames, Denoising, Canny) ---
+opencv-python>=4.8,<5
+numpy>=1.24,<3
+scipy>=1.10
+
+# --- Đánh giá (PSNR/SSIM - denoise-survey.py, Evaluation) ---
+scikit-image>=0.21
+
+# --- Notebook / trực quan hóa & bảng kết quả ---
+matplotlib>=3.7
+pandas>=2.0
+ipykernel>=6.29
+jupyter>=1.0
+
+# ===========================
+# Bước 5 - Real-ESRGAN Super Resolution (chưa tới, cài khi cần)
+# ===========================
+# torch và torchvision nên cài riêng theo đúng CPU/CUDA của máy bạn,
+# xem hướng dẫn tại: https://pytorch.org/get-started/locally/
+#
+# torch>=2.0
+# torchvision>=0.15
+# basicsr>=1.4.2
+# realesrgan>=0.3.0

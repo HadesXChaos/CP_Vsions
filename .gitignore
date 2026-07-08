@@ -1,6 +1,6 @@
 __pycache__/
 *.pyc
-
+.venv/
 # Dataset
 data/ground_truth/
 data/low_resolution/
