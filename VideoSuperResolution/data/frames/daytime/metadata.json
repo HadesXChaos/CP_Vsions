@@ -1,10 +1,10 @@
 {
-    "source_path": "d:\\Xu Ly Anh\\Project\\CP_Vsions\\VideoSuperResolution\\data\\raw\\daytime.mp4",
-    "fps": 29.97002997002997,
-    "width": 1080,
-    "height": 1920,
+    "source_path": "d:\\PYTHON\\cv\\CP_Vsions\\VideoSuperResolution\\data\\videos\\input\\daytime.mp4",
+    "fps": 29.97,
+    "width": 540,
+    "height": 960,
     "total_frames": 689,
     "extracted_frames": 30,
     "frame_step": 5,
-    "output_dir": "d:\\Xu Ly Anh\\Project\\CP_Vsions\\VideoSuperResolution\\data\\frames\\daytime"
+    "output_dir": "d:\\PYTHON\\cv\\CP_Vsions\\VideoSuperResolution\\data\\frames\\daytime"
 }

@@ -27,33 +27,34 @@ Thay vì chỉ sử dụng một mô hình Deep Learning như một "hộp đen"
 # Pipeline
 
 ```
-Video
-   │
-   ▼
-Extract Frames
-   │
-   ▼
-Gaussian/Bilateral Denoising
-   │
-   ▼
-Canny Edge Detection
-   │
-   ▼
-Mean Shift Segmentation
-   │
-   ▼
-Real-ESRGAN Super Resolution
-   │
-   ▼
-Edge-aware Sharpening
-   │
-   ▼
-PSNR + SSIM + Runtime
-   │
-   ▼
-Merge Video
+                         Video
+                           │
+                           ▼
+                    Extract Frames
+                           │
+                           ▼
+             Gaussian / Bilateral Denoising
+                           │
+                           ▼
+                 Denoised Frame (RGB)
+                           │
+      ┌────────────────────┼────────────────────┐
+      │                    │                    │
+      ▼                    ▼                    ▼
+Canny Edge Detection  Mean Shift Segmentation  Bicubic / Real-ESRGAN
+      │                    │                    │
+      ▼                    ▼                    ▼
+  Edge Map         Segmentation Map        SR Frame
+      └────────────────────┼────────────────────┘
+                           ▼
+            Edge & Region-aware Sharpening
+                           │
+                           ▼
+         PSNR + SSIM + Runtime Evaluation
+                           │
+                           ▼
+               Merge Frames to Video
 ```
-
 ---
 
 # Giải thích từng bước
