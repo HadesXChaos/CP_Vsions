@@ -2,7 +2,7 @@ import os
 import argparse
 import cv2
 
-from canny_edge import CannyEdgeDetector
+from .canny_edge import CannyEdgeDetector
 
 
 # ===========================

@@ -1,6 +1,7 @@
 __pycache__/
 *.pyc
 .venv/
+.zcode/
 # Dataset
 data/ground_truth/
 data/low_resolution/

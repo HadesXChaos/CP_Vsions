@@ -186,14 +186,12 @@ Hoặc bạn có thể chạy và khảo sát trực quan từng phân đoạn t
 
 ## 📝 Nhật Ký Tiến Độ (Roadmap)
 
-* [ ] Xây dựng module Extract Frames (`src/extraction`)
-* [ ] Xây dựng module Denoising (Gaussian / Bilateral) (`src/preprocessing`)
-* [ ] Xây dựng module Canny Edge Detection (`src/feature`)
-* [ ] Xây dựng module Mean Shift Segmentation (`src/segmentation`)
-* [ ] Tích hợp thuật toán nội suy Bicubic và mô hình học sâu Real-ESRGAN (`src/super_resolution`)
-* [ ] Xây dựng bộ lọc thích nghi Edge-aware Sharpening (`src/postprocessing`)
-* [ ] Quản lý luồng dữ liệu thông qua `src/dataset` và `pipeline.py`
-* [ ] Viết bộ công cụ đánh giá so sánh song song đối chiếu ($PSNR$, $SSIM$, $Runtime$) (`src/evaluation`)
-* [ ] Xuất và đóng gói Video kết quả hoàn chỉnh
-
-```
+* [x] Xây dựng module Extract Frames (`src/extraction`)
+* [x] Xây dựng module Denoising (Gaussian / Bilateral) (`src/preprocessing`)
+* [x] Xây dựng module Canny Edge Detection (`src/feature`)
+* [x] Xây dựng module Mean Shift Segmentation (`src/segmentation`)
+* [x] Tích hợp thuật toán nội suy Bicubic và mô hình học sâu Real-ESRGAN (`src/super_resolution`)
+* [x] Xây dựng bộ lọc thích nghi Edge-aware Sharpening (`src/postprocessing`)
+* [x] Quản lý luồng dữ liệu thông qua `src/dataset` và `pipeline.py`
+* [x] Viết bộ công cụ đánh giá so sánh song song đối chiếu ($PSNR$, $SSIM$, $Runtime$) (`src/evaluation`)
+* [ ] Xuất và đóng gói Video kết quả hoàn chỉnh (cần video đầu vào thực tế)

@@ -1,7 +1,7 @@
 import os
 import cv2
 
-from mean_shift import MeanShiftSegmenter
+from .mean_shift import MeanShiftSegmenter
 
 
 IMAGE_PATH = "../../data/processed/denoised/frame_000001.png"

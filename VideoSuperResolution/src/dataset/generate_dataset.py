@@ -2,9 +2,9 @@ import os
 import shutil
 import cv2
 
-from VideoSuperResolution.src.utils.extract_frames import FrameExtractor
-from VideoSuperResolution.src.dataset.degrade import DatasetDegrader
-from VideoSuperResolution.src.utils.merge_video import merge_frames
+from utils.extract_frames import FrameExtractor
+from dataset.degrade import DatasetDegrader
+from utils.merge_video import merge_frames
 
 
 # ===========================
@@ -18,7 +18,7 @@ GT_ROOT = "../data/ground_truth"
 LR_ROOT = "../data/low_resolution"
 
 INPUT_ROOT = "../data/videos/input"
-
+SR = "../data/processed/sr"
 
 # ===========================
 # RESET FOLDER

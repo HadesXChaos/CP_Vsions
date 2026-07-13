@@ -4,7 +4,7 @@ import argparse
 import cv2
 import numpy as np
 
-from canny_edge import CannyEdgeDetector
+from .canny_edge import CannyEdgeDetector
 
 
 # ===========================

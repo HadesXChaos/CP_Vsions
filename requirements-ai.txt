@@ -1,9 +1,52 @@
 # ============================================================
-# AI Super Resolution
-# Install after installing requirements.txt
+# requirements-ai.txt  –  AI / Super Resolution packages
+# YEU CAU: Python 3.11 hoac 3.12  (KHONG ho tro Python 3.13)
+# ============================================================
+#
+# Trinh tu cai dat:
+#
+#   1) Kiem tra ban co Python 3.11 khong:
+#        py -3.11 --version
+#      Neu chua, tai tai: https://www.python.org/downloads/release/python-3119/
+#
+#   2) Tao virtualenv rieng voi Python 3.11:
+#        py -3.11 -m venv .venv311
+#        .venv311\Scripts\Activate   (Windows PowerShell)
+#
+#   3) Cai PyTorch (chon dung CUDA hoac CPU):
+#      CPU-only:
+#        pip install torch==2.1.2 torchvision==0.16.2 --index-url https://download.pytorch.org/whl/cpu
+#      CUDA 11.8:
+#        pip install torch==2.1.2 torchvision==0.16.2 --index-url https://download.pytorch.org/whl/cu118
+#      CUDA 12.1:
+#        pip install torch==2.1.2 torchvision==0.16.2 --index-url https://download.pytorch.org/whl/cu121
+#
+#   4) Cai file nay:
+#        pip install -r requirements-ai.txt
+#
+#   5) Chay pipeline day du (co SR):
+#        python VideoSuperResolution/src/test_pipeline.py --sr-method real-esrgan
 # ============================================================
 
+# Core CV (tuong thich numpy 1.x tren Python 3.11)
+numpy==1.26.4
+opencv-python>=4.9
+scikit-image>=0.19
+scipy>=1.10
+pillow>=10.0
+imageio>=2.28
+
+# AI model dependencies
 torch==2.1.2
 torchvision==0.16.2
 basicsr==1.4.2
 realesrgan==0.3.0
+gfpgan==1.3.8
+facexlib==0.3.0
+
+# Utilities
+tqdm>=4.66
+requests>=2.31
+PyYAML>=6.0
+addict>=2.4
+future>=1.0

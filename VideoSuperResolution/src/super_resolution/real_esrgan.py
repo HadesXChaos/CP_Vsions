@@ -1,4 +1,4 @@
-import torch
+import torch 
 import cv2
 from realesrgan import RealESRGANer
 from basicsr.archs.rrdbnet_arch import RRDBNet

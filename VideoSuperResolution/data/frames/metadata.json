@@ -1,0 +1,10 @@
+{
+    "source_path": "VideoSuperResolution\\data\\raw\\night.mp4",
+    "fps": 30.0,
+    "width": 1080,
+    "height": 1920,
+    "total_frames": 290,
+    "extracted_frames": 30,
+    "frame_step": 1,
+    "output_dir": "VideoSuperResolution\\data\\frames"
+}

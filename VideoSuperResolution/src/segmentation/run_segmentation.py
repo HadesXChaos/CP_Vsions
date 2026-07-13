@@ -2,7 +2,7 @@ import os
 import csv
 import cv2
 
-from mean_shift import MeanShiftSegmenter
+from .mean_shift import MeanShiftSegmenter
 
 
 INPUT_DIR = "../../data/processed/denoised"
