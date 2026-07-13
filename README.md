@@ -1,300 +1,199 @@
 # Video Super Resolution using Classical Computer Vision and AI
 
-## Đề tài
+Kho lưu trữ này chứa mã nguồn của dự án **"Khôi phục chất lượng video độ phân giải thấp bằng pipeline xử lý ảnh truyền thống kết hợp AI Super Resolution"**. 
 
-**Khôi phục chất lượng video độ phân giải thấp bằng pipeline xử lý ảnh và AI Super Resolution**
-
-## Giới thiệu
-
-Nhiều video thu được từ camera giám sát, điện thoại đời cũ hoặc video nén có chất lượng thấp, xuất hiện hiện tượng nhiễu, mờ và mất chi tiết. Điều này làm giảm khả năng quan sát cũng như ảnh hưởng đến các bài toán thị giác máy tính phía sau.
-
-Dự án này xây dựng một pipeline kết hợp giữa các kỹ thuật xử lý ảnh truyền thống và mô hình AI Super Resolution nhằm cải thiện chất lượng video.
-
-Thay vì chỉ sử dụng một mô hình Deep Learning như một "hộp đen", dự án xây dựng toàn bộ quy trình xử lý ảnh, trong đó mô hình AI chỉ là một thành phần của pipeline.
+Thay vì chỉ sử dụng các mô hình Deep Learning như một "hộp đen" độc lập, dự án này xây dựng một pipeline xử lý ảnh toàn diện. Trong đó, kỹ thuật thị giác máy tính cổ điển đóng vai trò tiền/hậu xử lý định hướng (Edge & Region-aware), đồng thời tích hợp thuật toán nội suy truyền thống (**Bicubic Interpolation**) để làm mốc đối chiếu (Baseline) đánh giá hiệu quả vượt trội của mô hình AI (**Real-ESRGAN**).
 
 ---
 
-# Mục tiêu
+## 📌 Đề tài & Đặt vấn đề
 
-* Khử nhiễu video đầu vào.
-* Bảo toàn biên và chi tiết quan trọng.
-* Tăng độ phân giải cho từng frame.
-* Cải thiện độ sắc nét của video đầu ra.
-* Đánh giá kết quả bằng các chỉ số định lượng.
+Nhiều video thu được từ camera giám sát, điện thoại đời cũ hoặc video nén có chất lượng thấp, xuất hiện hiện tượng nhiễu, mờ và mất chi tiết. Điều này làm giảm khả năng quan sát cũng như ảnh hưởng tiêu cực đến các bài toán thị giác máy tính phía sau (như nhận diện khuôn mặt, biển số xe, theo dõi đối tượng).
+
+**Mục tiêu của dự án:**
+- Khử nhiễu video đầu vào nhưng vẫn bảo toàn biên và chi tiết quan trọng.
+- Tăng độ phân giải đồng thời bằng 2 nhánh song song để đối chiếu: Nội suy hình học truyền thống (**Bicubic Interpolation**) và Học sâu (**Real-ESRGAN**).
+- Cải thiện độ sắc nét dựa trên bản đồ cạnh (Edge map) và phân đoạn vùng (Segmentation map).
+- Đánh giá và so sánh kết quả định lượng giữa các phương pháp bằng các chỉ số tiêu chuẩn ($PSNR$, $SSIM$, $Runtime$).
 
 ---
 
-# Pipeline
+## 🗺️ Kiến trúc Pipeline Hệ thống
 
-```
-                         Video
-                           │
-                           ▼
-                    Extract Frames
-                           │
-                           ▼
-             Gaussian / Bilateral Denoising
-                           │
-                           ▼
-                 Denoised Frame (RGB)
-                           │
-      ┌────────────────────┼────────────────────┐
-      │                    │                    │
-      ▼                    ▼                    ▼
-Canny Edge Detection  Mean Shift Segmentation  Bicubic / Real-ESRGAN
-      │                    │                    │
-      ▼                    ▼                    ▼
-  Edge Map         Segmentation Map        SR Frame
-      └────────────────────┼────────────────────┘
-                           ▼
-            Edge & Region-aware Sharpening
-                           │
-                           ▼
-         PSNR + SSIM + Runtime Evaluation
-                           │
-                           ▼
-               Merge Frames to Video
-```
----
+Quy trình xử lý tuần tự và song song của từng frame trong hệ thống được mô tả qua sơ đồ dưới đây:
 
-# Giải thích từng bước
+```text
+                         Video Đầu Vào
+                               │
+                               ▼
+                        Extract Frames
+                               │
+                               ▼
+                 Gaussian / Bilateral Denoising
+                               │
+                               ▼
+                     Denoised Frame (RGB)
+                               │
+      ┌────────────────────────┼────────────────────────┐
+      │                        │                        │
+      ▼                        ▼                        ▼
+Canny Edge Detection    Mean Shift Segmentation    [Bicubic vs Real-ESRGAN]
+      │                        │                        │
+      │                        │                        │    
+Upscale (Nearest)        Upscale (Nearest)              │
+      │                        │                        │
+      ▼                        ▼                        ▼
+   Edge Map             Segmentation Map            SR Frame
+      └────────────────────────┼────────────────────────┘
+                               ▼
+                 Edge & Region-aware Sharpening
+                               │
+                               ▼
+                PSNR + SSIM + Runtime Evaluation
+             (Đối chiếu Bicubic Baseline vs AI SR)
+                               │
+                               ▼
+                     Merge Frames to Video
+                               │
+                               ▼
+                         Video Kết Quả
 
-## 1. Extract Frames
-
-Video được tách thành các frame riêng biệt để thuận tiện cho việc xử lý từng ảnh.
-
-Output:
-
-```
-frame0001.png
-frame0002.png
-...
 ```
 
 ---
 
-## 2. Gaussian / Bilateral Denoising
+## 🔍 Chi Tiết Các Bước Xử Lý
 
-Khử nhiễu trước khi tăng độ phân giải.
+1. **Extract Frames:** Tách video thành các frame riêng biệt để thuận tiện cho việc xử lý từng ảnh.
+2. **Gaussian / Bilateral Denoising:** Khảo sát hiệu năng giữa Gaussian Blur và Bilateral Filter nhằm giảm nhiễu hạt, nhiễu nén nhưng vẫn cố gắng giữ lại cấu trúc biên nguyên bản. Các tham số khảo sát gồm `kernel size` và `sigma`.
+3. **Canny Edge Detection:** Trích xuất ma trận biên (Edge map) để hỗ trợ bước làm nét hậu xử lý và khảo sát ảnh hưởng của ngưỡng Canny (`low threshold`, `high threshold`).
+4. **Mean Shift Segmentation:** Phân đoạn ảnh thành các vùng màu sắc đồng nhất (Segmentation map) dựa trên `spatial radius` và `color radius` nhằm hỗ trợ tăng cường ảnh và giảm nhiễu nền.
+5. **Super Resolution & Baseline Comparison:** Tiến hành tăng độ phân giải frame ảnh theo 2 nhánh để đối chiếu:
+* **Nhánh Baseline:** Thuật toán nội suy hình học truyền thống (**Bicubic Interpolation**).
+* **Nhánh AI:** Mô hình học sâu nâng cao (**Real-ESRGAN**) đóng vai trò mắt xích cốt lõi xử lý ảnh sau tiền xử lý sạch nhiễu.
 
-Hai phương pháp sẽ được khảo sát:
 
-* Gaussian Blur
-* Bilateral Filter
-
-Mục tiêu:
-
-* giảm nhiễu
-* vẫn giữ được biên
-
-Các tham số sẽ được khảo sát:
-
-* kernel size
-* sigma
+6. **Edge-aware Sharpening:** Khắc phục hiện tượng mờ biên sau siêu phân giải, hạn chế tạo halo và giữ chi tiết biên. Các phương pháp khảo sát gồm: Unsharp Mask, Laplacian Sharpening, Edge-aware Sharpening.
+7. **Evaluation:** Đánh giá chất lượng bằng hai chỉ số khách quan $PSNR$ và $SSIM$ của cả 2 phương pháp so với ảnh gốc chất lượng cao (Ground Truth), kết hợp đo lường thời gian thực thi ($Runtime$) của từng module. So sánh trực quan các trạng thái ảnh: Input $\rightarrow$ Denoised $\rightarrow$ Super Resolution $\rightarrow$ Final Result.
+8. **Merge Video:** Hợp nhất các frame cấu trúc cao thành video đầu ra hoàn chỉnh định dạng `output.mp4`.
 
 ---
 
-## 3. Canny Edge Detection
+## 📁 Cấu Trúc Thư Mục Dự Án
 
-Phát hiện các cạnh quan trọng của ảnh.
+```text
+CP_VSIONS/
+└── VideoSuperResolution/
+    │
+    ├── data/
+    │   ├── frames/             # Các frame ảnh được trích xuất từ video
+    │   ├── ground_truth/       # Dữ liệu ảnh gốc chất lượng cao dùng để đối chiếu đánh giá
+    │   ├── low_resolution/     # Các frame ảnh độ phân giải thấp
+    │   ├── processed/          # Các frame ảnh trong quá trình xử lý trung gian
+    │   ├── raw/                # Dữ liệu ảnh thô ban đầu
+    │   └── videos/             # Chứa các file video đầu vào và video kết quả
+    │
+    ├── notebook/               # Các file Jupyter Notebook (.ipynb) để thử nghiệm từng bước
+    │
+    ├── reports/                # Biểu đồ phân tích và báo cáo kết quả khảo sát tham số
+    │
+    ├── src/                    # Mã nguồn cốt lõi của dự án chia theo module
+    │   ├── dataset/            # Module quản lý, phân loại và tải dữ liệu (Dataloader)
+    │   ├── evaluation/         # Module tính toán chỉ số PSNR, SSIM, Runtime
+    │   ├── extraction/         # Module trích xuất frame từ video và gộp frame thành video
+    │   ├── feature/            # Module xử lý đặc trưng và phát hiện cạnh (Canny Edge)
+    │   ├── postprocessing/     # Module làm nét thích nghi hậu xử lý (Sharpening)
+    │   ├── preprocessing/      # Module khử nhiễu tiền xử lý (Denoising)
+    │   ├── segmentation/       # Module phân đoạn ảnh (Mean Shift)
+    │   ├── super_resolution/   # Module tích hợp thuật toán Bicubic và AI Real-ESRGAN
+    │   └── utils/              # Các hàm bổ trợ cấu hình hệ thống, đọc/ghi file
+    │
+    ├── main.py                 # File thực thi chính/Giao diện dòng lệnh chạy chương trình
+    └── pipeline.py             # Kịch bản định nghĩa luồng luân chuyển dữ liệu toàn hệ thống
 
-Kết quả biên được sử dụng để:
-
-* hỗ trợ bước làm sắc nét
-* phân tích ảnh trung gian
-* khảo sát ảnh hưởng của ngưỡng Canny
-
-Các tham số khảo sát:
-
-* low threshold
-* high threshold
-
----
-
-## 4. Mean Shift Segmentation
-
-Phân đoạn ảnh thành các vùng có màu sắc và kết cấu tương đồng.
-
-Mục đích:
-
-* xác định vùng đối tượng
-* hỗ trợ bước tăng cường ảnh
-* giảm ảnh hưởng của nền
-
-Các tham số khảo sát:
-
-* spatial radius
-* color radius
-
----
-
-## 5. Real-ESRGAN Super Resolution
-
-Sử dụng mô hình Real-ESRGAN để tăng độ phân giải cho từng frame.
-
-Đây là thành phần AI duy nhất trong pipeline.
-
-Input:
-
-* ảnh sau tiền xử lý
-
-Output:
-
-* ảnh độ phân giải cao
-
----
-
-## 6. Edge-aware Sharpening
-
-Sau khi tăng độ phân giải, ảnh thường bị mềm hoặc mất độ sắc nét.
-
-Bước này sử dụng thông tin cạnh để:
-
-* tăng độ sắc nét
-* hạn chế tạo halo
-* giữ chi tiết biên
-
-Các phương pháp dự kiến khảo sát:
-
-* Unsharp Mask
-* Laplacian Sharpening
-* Edge-aware Sharpening
-
----
-
-## 7. Evaluation
-
-Kết quả được đánh giá bằng:
-
-* PSNR
-* SSIM
-* Runtime
-
-Ngoài ra sẽ so sánh trực quan:
-
-* Input
-* Sau khử nhiễu
-* Sau Super Resolution
-* Kết quả cuối cùng
-
----
-
-## 8. Merge Video
-
-Ghép toàn bộ frame đã xử lý thành video hoàn chỉnh.
-
-Output:
-
-```
-output.mp4
 ```
 
 ---
 
-# Cấu trúc dự án
+## 🛠️ Công Nghệ & Thư Viện Sử Dụng
 
-```
-VideoSuperResolution/
+Dự án yêu cầu cài đặt môi trường chạy **Python 3.11+** cùng các thư viện cốt lõi:
 
-│── data/
-│   ├── raw/
-│   ├── frames/
-│   ├── processed/
-│   └── output/
-│
-│── models/
-│
-│── notebooks/
-│
-│── src/
-│   ├── extraction/
-│   ├── preprocessing/
-│   ├── feature/
-│   ├── segmentation/
-│   ├── super_resolution/
-│   ├── postprocessing/
-│   ├── evaluation/
-│   └── utils/
-│
-│── reports/
-│
-│── requirements.txt
-│── README.md
-│── main.py
-```
+* **Xử lý ảnh & Nội suy truyền thống:** `OpenCV`, `NumPy`, `SciPy`, `Scikit-image`
+* **Học sâu (AI):** `PyTorch`, `Real-ESRGAN`
+* **Hiển thị & Trực quan hóa:** `Matplotlib`
 
 ---
 
-# Thư viện sử dụng
+## 💻 Hướng Dẫn Cài Đặt & Chạy Chương Trình
 
-* Python 3.11+
-* OpenCV
-* NumPy
-* Matplotlib
-* Scikit-image
-* SciPy
-* PyTorch
-* Real-ESRGAN
+### 1. Khởi tạo môi trường ảo
 
----
+**Trên Windows:**
 
-# Cài đặt
-
-Tạo môi trường ảo:
-
-```
+```bash
 python -m venv .venv
-```
-
-Kích hoạt:
-
-Windows
-
-```
 .venv\Scripts\activate
-```
-
-Linux/Mac
 
 ```
+
+**Trên Linux / macOS:**
+
+```bash
+python -m venv .venv
 source .venv/bin/activate
-```
-
-Cài thư viện:
 
 ```
+
+### 2. Cài đặt các thư viện phụ thuộc
+
+*(Đảm bảo bạn đã tạo file `requirements.txt` ở thư mục gốc trước khi chạy lệnh này)*
+
+```bash
 pip install -r requirements.txt
-```
-
----
-
-# Chạy chương trình
 
 ```
+
+*(Lưu ý: Nếu bạn sử dụng GPU để tăng tốc mô hình Real-ESRGAN, hãy đảm bảo cài đặt phiên bản PyTorch tương thích với phiên bản CUDA trên máy của bạn).*
+
+### 3. Thực thi hệ thống
+
+Để kiểm tra hoặc chạy thử nghiệm luồng xử lý (pipeline):
+
+```bash
+python pipeline.py
+
+```
+
+Để thực thi toàn bộ project với cấu hình chính thức:
+
+```bash
 python main.py
+
 ```
 
-Hoặc chạy từng notebook trong thư mục `notebooks/`.
+Hoặc bạn có thể chạy và khảo sát trực quan từng phân đoạn thuật toán thông qua các tệp tương ứng nằm trong thư mục `notebook/`.
 
 ---
 
-# Kết quả mong đợi
+## 📈 Kết Quả Mong Đợi & So Sánh Đối Chiếu
 
-* Video có độ phân giải cao hơn.
-* Giảm nhiễu so với đầu vào.
-* Biên rõ nét hơn.
-* PSNR và SSIM được cải thiện so với video gốc.
-* Toàn bộ pipeline có thể chạy lại trên dữ liệu mới.
+* **Độ trực quan:** Ảnh xử lý bằng Real-ESRGAN giữ được chi tiết bề mặt (texture) và độ nét biên vượt trội, không bị hiện tượng mờ nhòe (blur) thô ở các vùng tần số cao như khi xử lý bằng thuật toán nội suy Bicubic thuần túy.
+* **Chỉ số định lượng:** Báo cáo xuất ra từ hệ thống sẽ chứng minh bằng biểu đồ rằng giá trị cấu trúc mạng học sâu AI cải thiện điểm số số học $PSNR$ và cấu trúc tương đồng $SSIM$ đáng kể so với mốc đối chiếu Baseline, đổi lại là sự đánh đổi hợp lý về mặt thời gian xử lý ($Runtime$).
+* Toàn bộ pipeline có tính linh hoạt cao, có thể tái cấu hình và chạy lại ổn định trên các tập dữ liệu video mới.
 
 ---
 
-# Công việc dự kiến
+## 📝 Nhật Ký Tiến Độ (Roadmap)
 
-* [ ] Xây dựng module Extract Frames
-* [ ] Xây dựng module Denoising
-* [ ] Xây dựng module Canny
-* [ ] Xây dựng module Mean Shift
-* [ ] Tích hợp Real-ESRGAN
-* [ ] Xây dựng Edge-aware Sharpening
-* [ ] Đánh giá PSNR, SSIM
-* [ ] Xuất video kết quả
+* [ ] Xây dựng module Extract Frames (`src/extraction`)
+* [ ] Xây dựng module Denoising (Gaussian / Bilateral) (`src/preprocessing`)
+* [ ] Xây dựng module Canny Edge Detection (`src/feature`)
+* [ ] Xây dựng module Mean Shift Segmentation (`src/segmentation`)
+* [ ] Tích hợp thuật toán nội suy Bicubic và mô hình học sâu Real-ESRGAN (`src/super_resolution`)
+* [ ] Xây dựng bộ lọc thích nghi Edge-aware Sharpening (`src/postprocessing`)
+* [ ] Quản lý luồng dữ liệu thông qua `src/dataset` và `pipeline.py`
+* [ ] Viết bộ công cụ đánh giá so sánh song song đối chiếu ($PSNR$, $SSIM$, $Runtime$) (`src/evaluation`)
+* [ ] Xuất và đóng gói Video kết quả hoàn chỉnh
+
+```
